@@ -46,8 +46,10 @@ func TestListener(t *testing.T) {
 			TCP 핸드 쉐이크가 실패하거나 리스너가 닫힌경우 에러 값으로
 			nil 이외의 값이 리턴됨.
 
-			conn의 실제 타입은 TCP 수신 연결을 수락했기 때문에 net.TCPConn객체의 포인터가 된다.
+			conn의 실제 타입은 TCP 수신 연결을 수락했기 때문에 net.TCPConn객체의 포인터가 됨.
 			연결 인터페이스는 서버 측면에서의	TCP연결을 나타낸다.
+
+			그리고 for 무한루프지만 연결 요청이 없을 경우  listener.Accept()에서 블락킹됨.
 		*/
 		conn, err := listener.Accept()
 		if err != nil {
@@ -60,8 +62,12 @@ func TestListener(t *testing.T) {
 			서버로 FIN 패킷을 보내 연결을 우아하게 종료 될 수 있도록 한다.
 		*/
 		go func(c net.Conn) {
-			defer c.Close()
+			defer func() {
+				c.Close()
+				t.Logf("client connection closed")
+			}()
 			//로직 작성
+			t.Logf("client connected")
 		}(conn)
 	}
 }
